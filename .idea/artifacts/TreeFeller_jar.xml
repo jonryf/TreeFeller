@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="TreeFeller:jar">
+    <output-path>$USER_HOME$/Programmer/MCServer/plugins</output-path>
+    <root id="archive" name="TreeFeller.jar">
+      <element id="module-output" name="TreeFeller" />
+    </root>
+  </artifact>
+</component>

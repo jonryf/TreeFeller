@@ -1,0 +1,6 @@
+name: TreeFeller
+version: 2.5-RELEASE
+description: EWG addon
+website: http://www.spigotmc.org/members/minelazz.11227/
+main: com.minelazz.treefeller.TreeFeller
+depend: [FastAsyncWorldEdit]

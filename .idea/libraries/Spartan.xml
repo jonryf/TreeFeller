@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Spartan">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/Programmer/MCServer/plugins/FastAsyncWorldEdit/Spartan.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
