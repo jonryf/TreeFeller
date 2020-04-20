@@ -1,11 +1,10 @@
 package com.minelazz.treefeller.hooks.mcmmo;
 
 import com.gmail.nossr50.datatypes.player.McMMOPlayer;
-import com.gmail.nossr50.datatypes.skills.SkillType;
+import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
 import com.gmail.nossr50.skills.SkillManager;
 import com.gmail.nossr50.util.player.UserManager;
 import com.minelazz.treefeller.Utils;
-import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -35,10 +34,10 @@ public class McMMOHook implements Listener {
             Class clazz = player.getClass();
             Field field = clazz.getDeclaredField("skillManagers");
             field.setAccessible(true);
-            Map<SkillType, SkillManager> skillMap = (Map<SkillType, SkillManager>) field.get(player);
-            if (!(skillMap.get(SkillType.WOODCUTTING) instanceof WoodCutterHook)) {
-                skillMap.remove(SkillType.WOODCUTTING);
-                skillMap.put(SkillType.WOODCUTTING, new WoodCutterHook(player));
+            Map<PrimarySkillType, SkillManager> skillMap = (Map<PrimarySkillType, SkillManager>) field.get(player);
+            if (!(skillMap.get(PrimarySkillType.WOODCUTTING) instanceof WoodCutterHook)) {
+                skillMap.remove(PrimarySkillType.WOODCUTTING);
+                skillMap.put(PrimarySkillType.WOODCUTTING, new WoodCutterHook(player));
             }
         } catch (Exception e) {
 

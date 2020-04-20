@@ -64,7 +64,6 @@ public class TreeFeller extends JavaPlugin implements Listener {
             return;
         if (!Utils.isWood(event.getBlock().getType()))
             return;
-        System.out.println(currentFellers.contains(event.getPlayer().getUniqueId()));
         if (currentFellers.contains(event.getPlayer().getUniqueId()))
             return;
         if (TreeFeller.settings.cuttingSpeed.get(event.getPlayer().getItemInHand().getType()) == null)

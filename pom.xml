@@ -31,7 +31,7 @@
 
         <repository>
             <id>mcmmo</id>
-            <url>https://github.com/mcMMO-Dev/mcMMO</url>
+            <url>https://repo.codemc.org/repository/maven-public/</url>
         </repository>
 
         <repository>
@@ -99,11 +99,6 @@
             <groupId>org.spigotmc</groupId>
             <artifactId>minecraft-server</artifactId>
             <version>1.15.1-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>net.minecraft.server</groupId>
-            <artifactId>spigot</artifactId>
-            <version>v1_15_R1</version>
         </dependency>
         <dependency>
             <groupId>net.minecraft.server</groupId>
