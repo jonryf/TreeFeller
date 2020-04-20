@@ -6,7 +6,6 @@ import com.minelazz.treefeller.hooks.SpartanHook;
 import com.minelazz.treefeller.hooks.mcmmo.McMMOHook;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
-import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -14,20 +13,23 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 public class TreeFeller extends JavaPlugin implements Listener {
 
     public static TreeFeller instance;
-    public static PluginSettings settings;
-    public static List<UUID> currentFellers = new ArrayList<>();
+    static PluginSettings settings;
+    public static Set<UUID> currentFellers = new HashSet<>();
 
-    private ArrayList<UUID> delayLimitedUsers = new ArrayList<>();
+    private Set<UUID> delayLimitedUsers = new HashSet<>();
     private HashMap<UUID, Integer> delayOnUsers = new HashMap<>();
 
+    /**
+     * Setup plugin
+     */
     @Override
     public void onEnable() {
         instance = this;
@@ -35,29 +37,39 @@ public class TreeFeller extends JavaPlugin implements Listener {
         settings.save();
 
         Bukkit.getPluginManager().registerEvents(this, this);
-        if (Bukkit.getPluginManager().isPluginEnabled(("NoCheatPlus")))
+        if (Bukkit.getPluginManager().isPluginEnabled(("NoCheatPlus"))) {
             NoCheatPlusHook.addNCPSupport();
-        if (Bukkit.getPluginManager().isPluginEnabled("AAC"))
+        }
+        if (Bukkit.getPluginManager().isPluginEnabled("AAC")) {
             Bukkit.getPluginManager().registerEvents(new AACHook(), this);
-        if (Bukkit.getPluginManager().isPluginEnabled("mcMMO"))
+        }
+        if (Bukkit.getPluginManager().isPluginEnabled("mcMMO")) {
             Bukkit.getPluginManager().registerEvents(new McMMOHook(), this);
-        if (Bukkit.getPluginManager().isPluginEnabled("Spartan"))
+        }
+        if (Bukkit.getPluginManager().isPluginEnabled("Spartan")) {
             Bukkit.getPluginManager().registerEvents(new SpartanHook(), this);
+        }
 
 
     }
 
+    /**
+     * Start cutting down a tree if desired conditions is meet
+     *
+     * @param event fired when block is broken by player
+     */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onBlockBreakEvent(BlockBreakEvent event) {
         if (event.isCancelled() || settings.mcMMOTreeFeller || event.getPlayer().getGameMode() != GameMode.SURVIVAL)
             return;
-        if (event.getBlock().getType() != Material.LOG && event.getBlock().getType() != Material.LOG_2)
+        if (!Utils.isWood(event.getBlock().getType()))
             return;
+        System.out.println(currentFellers.contains(event.getPlayer().getUniqueId()));
         if (currentFellers.contains(event.getPlayer().getUniqueId()))
             return;
-        if (event.getPlayer().getItemInHand().getType() == null || TreeFeller.settings.cuttingSpeed.get(event.getPlayer().getItemInHand().getType()) == null)
+        if (TreeFeller.settings.cuttingSpeed.get(event.getPlayer().getItemInHand().getType()) == null)
             return;
-        if (!event.getPlayer().hasPermission("treefeller.use." + event.getPlayer().getItemInHand().getType().toString().toLowerCase()))
+        if (settings.usePermissions && !event.getPlayer().hasPermission("treefeller.use." + event.getPlayer().getItemInHand().getType().toString().toLowerCase()))
             return;
 
         if (settings.delay > 0) {
@@ -79,6 +91,7 @@ public class TreeFeller extends JavaPlugin implements Listener {
             delayOnUsers.put(id, (int) System.currentTimeMillis() / 1000);
         }
         event.setCancelled(true);
+        currentFellers.add(event.getPlayer().getUniqueId());
         new TreeCutter(event.getPlayer(), event.getBlock()).runTaskAsynchronously(this);
     }
 

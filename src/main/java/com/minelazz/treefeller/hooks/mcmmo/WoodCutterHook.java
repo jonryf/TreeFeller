@@ -8,6 +8,7 @@ import com.gmail.nossr50.util.Misc;
 import com.gmail.nossr50.util.skills.CombatUtils;
 import com.minelazz.treefeller.TreeCutter;
 import com.minelazz.treefeller.TreeFeller;
+import com.minelazz.treefeller.Utils;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -36,13 +37,13 @@ public class WoodCutterHook extends WoodcuttingManager {
                 Block block = blockState.getBlock();
                 for (BlockFace face : BlockFace.values()) {
                     Material type = blockState.getBlock().getRelative(face).getType();
-                    if (type == Material.LOG || type == Material.LOG_2) {
+                    if (Utils.isWood(type)) {
                         block = blockState.getBlock().getRelative(face);
                         break;
                     }
                 }
                 //Check if tree is vanilla
-                if (block.getData() < 11 || (block.getType() != Material.LOG && block.getData() != 2)) {
+                if (block.getData() < 11 || (!Utils.isWood(block.getType()) && block.getData() != 2)) {
                     new BukkitRunnable() {
 
                         @Override

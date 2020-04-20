@@ -1,8 +1,5 @@
 package com.minelazz.treefeller;
 
-import com.boydti.fawe.util.EditSessionBuilder;
-import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.blocks.BaseBlock;
 import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Location;
@@ -24,10 +21,12 @@ public final class TreeCutter extends BukkitRunnable {
     private Player player;
     private Block startBlock;
     private List<String> comparisonBlockArray = new ArrayList<>();
+    private List<String> scanned = new ArrayList<>();
     private List<String> comparisonBlockArrayLeaves = new ArrayList<>();
     private List<Block> blocks = new ArrayList<>();
     private int indexed = 0;
     private boolean loop = false;
+    private boolean initialized;
 
 
     public TreeCutter(Player cutter, Block startBlock) {
@@ -35,39 +34,60 @@ public final class TreeCutter extends BukkitRunnable {
         this.startBlock = startBlock;
     }
 
-    public void runLoop(Block b1, final int x1, final int z1) {
+    /**
+     * Scan an object find all connecting leaves and wood blocks
+     *
+     * @param block start block
+     * @param centerX center of object, x
+     * @param centerZ center of object, z
+     */
+    public void runLoop(Block block, final int centerX, final int centerZ) {
         for (int x = -2; x <= 2; x++) {
             for (int y = -2; y <= 2; y++) {
                 for (int z = -2; z <= 1; z++) {
                     if (x == 0 && y == 0 && z == 0)
                         continue;
-                    Block b2 = b1.getRelative(x, y, z);
-                    String s = b2.getX() + ":" + b2.getY() + ":" + b2.getZ();
-
-                    if ((b2.getType() == Material.LEAVES || b2.getType() == Material.LEAVES_2) && !comparisonBlockArrayLeaves.contains(s))
-                        comparisonBlockArrayLeaves.add(s);
-                    if (b2.getType() != Material.LOG && b2.getType() != Material.LOG_2)
+                    Block blockRelative = block.getRelative(x, y, z);
+                    String s = blockRelative.getX() + ":" + blockRelative.getY() + ":" + blockRelative.getZ();
+                    if (scanned.contains(s)){
                         continue;
-                    int searchSquareSize = 25;
-                    if (b2.getX() > x1 + searchSquareSize || b2.getX() < x1 - searchSquareSize || b2.getZ() > z1 + searchSquareSize || b2.getZ() < z1 - searchSquareSize)
-                        break;
-                    if (!comparisonBlockArray.contains(s)) {
-                        comparisonBlockArray.add(s);
-                        blocks.add(b2);
-                        this.runLoop(b2, x1, z1);
+                    }
+                    scanned.add(s);
+                    if (Utils.isLeaves(blockRelative.getType()) && !comparisonBlockArrayLeaves.contains(s)) {
+                        comparisonBlockArrayLeaves.add(s);
+                        continue;
+                    }
+
+                    if (Utils.isWood(blockRelative.getType())) {
+                        int searchSquareSize = 25;
+                        if (blockRelative.getX() > centerX + searchSquareSize || blockRelative.getX() < centerX - searchSquareSize
+                                || blockRelative.getZ() > centerZ + searchSquareSize || blockRelative.getZ() < centerZ - searchSquareSize)
+                            break;
+                        if (!comparisonBlockArray.contains(s)) {
+                            comparisonBlockArray.add(s);
+                            blocks.add(blockRelative);
+                            this.runLoop(blockRelative, centerX, centerZ);
+                        }
                     }
                 }
             }
         }
     }
 
+    /**
+     * Chop down a tree if the object is a tree
+     */
     @Override
     public void run() {
+        if (initialized){
+            return;
+        }
+        initialized = true;
         blocks.add(startBlock);
         runLoop(startBlock, startBlock.getX(), startBlock.getZ());
+
         if (isTree()) {
             cutDownTree();
-            stop();
         } else {
             new BukkitRunnable() {
 
@@ -81,8 +101,14 @@ public final class TreeCutter extends BukkitRunnable {
                 }
             }.runTask(TreeFeller.instance);
         }
+        stop();
     }
 
+    /**
+     * Compare the amount of leaves to wood blocks to determine whether the object is tree or not
+     *
+     * @return true if object is a tree
+     */
     private boolean isTree() {
         return (comparisonBlockArrayLeaves.size() * 1D) / (blocks.size() * 1D) > 0.3;
     }
@@ -92,12 +118,11 @@ public final class TreeCutter extends BukkitRunnable {
     }
 
     private void stop() {
-        if (TreeFeller.currentFellers.contains(player.getUniqueId()))
-            TreeFeller.currentFellers.remove(player.getUniqueId());
+        TreeFeller.currentFellers.remove(player.getUniqueId());
     }
 
-    public void cutDownTree() {
-        if ((player.getItemInHand() == null || player.getItemInHand().getType() == Material.AIR) && !updateItemInHand()) {
+    private void cutDownTree() {
+        if ((player.getItemInHand().getType() == Material.AIR) && !updateItemInHand()) {
             stop();
             return;
         }
@@ -110,7 +135,6 @@ public final class TreeCutter extends BukkitRunnable {
 
         new BukkitRunnable() {
             int blocksCut = 0;
-            EditSession editSession = new EditSessionBuilder(blocks.get(0).getWorld().getName()).fastmode(true).build();
 
             @Override
             public void run() {
@@ -118,7 +142,7 @@ public final class TreeCutter extends BukkitRunnable {
                 if (TreeFeller.settings.instantTreeCut && !loop) {
                     for (int i = 0; i < blocks.size(); i++) {
                         loop = true;
-                        run();
+                        this.run();
                     }
                     this.cancel();
                     return;
@@ -172,14 +196,15 @@ public final class TreeCutter extends BukkitRunnable {
                     if (TreeFeller.settings.plantSapling &&
                             block.getX() == startBlock.getX() && block.getZ() == startBlock.getZ() && block.getY() <= startBlock.getY()) {
                         Block b = block.getRelative(BlockFace.DOWN);
-                        if ((b.getType() == Material.DIRT || b.getType() == Material.GRASS) && blocks.size() > 5) {
-                            block.setType(Material.SAPLING);
-                            block.setData((byte) getSaplingType(block));
-                        } else
-                            editSession.setBlock(block.getX(), block.getY(), block.getZ(), new BaseBlock(0, 0));
-                    } else
-                        editSession.setBlock(block.getX(), block.getY(), block.getZ(), new BaseBlock(0, 0));
 
+                        if ((b.getType() == Material.DIRT || b.getType() == Material.GRASS) && blocks.size() > 5) {
+                            block.setType(getSaplingType(block));
+                        } else {
+                            block.setType(Material.AIR);
+                        }
+                    } else {
+                        block.setType(Material.AIR);
+                    }
                 }
 
                 if (blocks.size() <= indexed || blocksCut >= TreeFeller.settings.maxLogBlocksPerCut)
@@ -188,7 +213,6 @@ public final class TreeCutter extends BukkitRunnable {
 
             @Override
             public void cancel() {
-                editSession.flushQueue();
                 stop();
                 super.cancel();
             }
@@ -197,16 +221,59 @@ public final class TreeCutter extends BukkitRunnable {
         }.runTaskTimer(TreeFeller.instance, 0L, speed);
     }
 
-    private int getSaplingType(Block block) {
-        if (block.getType() == Material.LOG)
-            return block.getData() % 4;
-        return 4 + block.getData() % 2;
+
+    /**
+     * Based on tree chopped down, find the sapling type
+     *
+     * @param block block in tree
+     * @return sapling for this tree
+     */
+    private Material getSaplingType(Block block) {
+        switch (block.getType()){
+            case ACACIA_LOG:
+            case STRIPPED_ACACIA_LOG:
+            case STRIPPED_ACACIA_WOOD:
+            case ACACIA_WOOD:
+                return Material.ACACIA_SAPLING;
+            case BIRCH_LOG:
+            case STRIPPED_BIRCH_LOG:
+            case STRIPPED_BIRCH_WOOD:
+            case BIRCH_WOOD:
+                return Material.BIRCH_SAPLING;
+            case DARK_OAK_LOG:
+            case STRIPPED_DARK_OAK_LOG:
+            case STRIPPED_DARK_OAK_WOOD:
+            case DARK_OAK_WOOD:
+                return Material.DARK_OAK_SAPLING;
+            case JUNGLE_LOG:
+            case STRIPPED_JUNGLE_LOG:
+            case STRIPPED_JUNGLE_WOOD:
+            case JUNGLE_WOOD:
+                return Material.JUNGLE_SAPLING;
+            case OAK_LOG:
+            case STRIPPED_OAK_LOG:
+            case STRIPPED_OAK_WOOD:
+            case OAK_WOOD:
+                return Material.OAK_SAPLING;
+            case SPRUCE_LOG:
+            case STRIPPED_SPRUCE_LOG:
+            case STRIPPED_SPRUCE_WOOD:
+            case SPRUCE_WOOD:
+                return Material.SPRUCE_SAPLING;
+        }
+        return Material.OAK_SAPLING;
     }
 
+    /**
+     * An axe can be broken, this method finds a new axe in the inventory if broken
+     *
+     * @return true if player still has an axe
+     */
     private boolean updateItemInHand() {
         ItemStack item = player.getItemInHand();
-        if (item != null && item.getType() != Material.AIR)
+        if (item.getType() != Material.AIR) {
             return false;
+        }
 
         for (int index = 0; index < 36; index++) {
             ItemStack stack = player.getInventory().getItem(index);

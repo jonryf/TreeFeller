@@ -31,7 +31,7 @@
 
         <repository>
             <id>mcmmo</id>
-            <url>https://github.com/mcMMO-Dev/mcMMOmc</url>
+            <url>https://github.com/mcMMO-Dev/mcMMO</url>
         </repository>
 
         <repository>
@@ -49,7 +49,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.12.1-R0.1-SNAPSHOT</version>
+            <version>1.15.1-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
 
@@ -63,14 +63,14 @@
         <dependency>
             <groupId>com.sk89q.worldguard</groupId>
             <artifactId>worldguard-legacy</artifactId>
-            <version>6.1.3-SNAPSHOT</version>
+            <version>LATEST</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.gmail.nossr50.mcMMO</groupId>
             <artifactId>mcMMO</artifactId>
-            <version>1.5.05-RELEASE</version>
+            <version>LATEST</version>
         </dependency>
 
         <!-- AntiCheats -->
@@ -78,13 +78,13 @@
         <dependency>
             <groupId>de.janmm14</groupId>
             <artifactId>aac-api</artifactId>
-            <version>3.3.0</version>
+            <version>LATEST</version>
         </dependency>
 
         <dependency>
             <groupId>fr.neatmonster</groupId>
             <artifactId>nocheatplus</artifactId>
-            <version>3.15.1-RC</version>
+            <version>LATEST</version>
             <scope>provided</scope>
         </dependency>
 
@@ -94,6 +94,21 @@
             <version>Universal</version>
             <scope>system</scope>
             <systemPath>${basedir}/libs/SpartanAPI.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>minecraft-server</artifactId>
+            <version>1.15.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>net.minecraft.server</groupId>
+            <artifactId>spigot</artifactId>
+            <version>v1_15_R1</version>
+        </dependency>
+        <dependency>
+            <groupId>net.minecraft.server</groupId>
+            <artifactId>spigot</artifactId>
+            <version>v1_15_R1</version>
         </dependency>
     </dependencies>
 </project>

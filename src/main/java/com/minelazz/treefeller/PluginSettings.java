@@ -10,6 +10,7 @@ import java.util.HashMap;
 public class PluginSettings {
     private static Gson gson = new GsonBuilder().enableComplexMapKeySerialization().setPrettyPrinting().create();
 
+    public boolean usePermissions = false;
     public boolean mcMMOTreeFeller = false;
     public boolean instantTreeCut = false;
     public boolean instantToInventory = true;
@@ -25,9 +26,9 @@ public class PluginSettings {
     public PluginSettings() {
         cuttingSpeed.put(Material.DIAMOND_AXE, 0);
         cuttingSpeed.put(Material.IRON_AXE, 1);
-        cuttingSpeed.put(Material.GOLD_AXE, 1);
+        cuttingSpeed.put(Material.GOLDEN_AXE, 1);
         cuttingSpeed.put(Material.STONE_AXE, 3);
-        cuttingSpeed.put(Material.WOOD_AXE, 4);
+        cuttingSpeed.put(Material.WOODEN_AXE, 4);
     }
 
     public static void load() {
