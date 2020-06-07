@@ -54,7 +54,7 @@ public class TreeFeller extends JavaPlugin implements Listener {
     }
 
     /**
-     * Start cutting down a tree if desired conditions is meet
+     * Start cutting down a tree if desired conditions are met
      *
      * @param event fired when block is broken by player
      */
